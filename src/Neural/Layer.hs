@@ -22,8 +22,8 @@ data Layer a = Layer
 -- normally distributed with mean 0 and standard deviation 1.
 newLayer
   :: (RandomGen g, Random a, Element a, Floating a)
-  => Int         -- The size of the layer
-  -> Int         -- The size of the next layer
+  => Int         -- ^ The size of the layer
+  -> Int         -- ^ The size of the next layer
   -> State g (Layer a)
 newLayer n m = do
   biases  <- replicateM n $ state normal

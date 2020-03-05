@@ -22,7 +22,6 @@ dependencies:
 - base               >= 4.7 && < 5
 - random             >= 1.1
 - mtl                >= 2.2.2
-- vector             >= 0.12.1.2
 - hmatrix            >= 0.20.0.0
 - normaldistribution >= 1.1.0.3
 
