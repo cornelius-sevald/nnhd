@@ -1,6 +1,8 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Neural.Network
   ( Network(..)
   , newNetwork
+  , feedforward
   )
 where
 
@@ -10,6 +12,7 @@ import           Control.Monad.State
 import qualified Data.Semigroup                as Semigroup
 import           Numeric.LinearAlgebra
 
+import           Neural.Activation              ( ActivationFunction(..))
 import           Neural.Layer                   ( Layer(..)
                                                 , newLayer
                                                 )
@@ -26,6 +29,21 @@ newNetwork
   => [Int]    -- ^ The sizes of the layers
   -> State g (Network a)
 newNetwork sizes = do
-  let sizes' = zip sizes (tail sizes ++ [0])
+  let sizes' = zip (init sizes) (tail sizes)
   layers <- mapM (uncurry newLayer) sizes'
   return $ Network layers
+
+-- | Feed forward an input through the network.
+feedforward
+  :: (Numeric a, Num (Vector a))
+  => ActivationFunction a  -- ^ The activation function
+  -> Vector a              -- ^ The network input
+  -> Network a             -- ^ The network
+  -> Vector a              -- ^ The network output
+feedforward activation input (Network layers) =
+  let _weights = map weights layers
+      _biases  = map biases layers
+      wb       = zip _weights _biases
+      f        = cmap activation
+      forward x (w, b) = f (w #> x + b)
+  in  foldl forward input wb

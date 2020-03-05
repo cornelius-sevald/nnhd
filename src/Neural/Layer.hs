@@ -17,15 +17,15 @@ data Layer a = Layer
     } deriving (Show)
 
 -- | Construct a new random layer given its,
--- size and the size of the next layer.
+-- size and the size of the previous layer.
 -- Each bias and weight is given a random value
 -- normally distributed with mean 0 and standard deviation 1.
 newLayer
   :: (RandomGen g, Random a, Element a, Floating a)
-  => Int         -- ^ The size of the layer
-  -> Int         -- ^ The size of the next layer
+  => Int         -- ^ The size of the previous layer
+  -> Int         -- ^ The size of the layer
   -> State g (Layer a)
-newLayer n m = do
-  biases  <- replicateM n $ state normal
-  weights <- replicateM n $ replicateM m $ state normal
-  return $ Layer (fromLists weights) (fromList biases)
+newLayer m n = do
+  _biases  <- replicateM n $ state normal
+  _weights <- replicateM n $ replicateM m $ state normal
+  return $ Layer (fromLists _weights) (fromList _biases)
