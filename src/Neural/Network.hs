@@ -2,8 +2,6 @@
 module Neural.Network
   ( Network(..)
   , newNetwork
-  , sendforwards
-  , sendforward
   , feedforwards
   , feedforward
   )
@@ -34,49 +32,23 @@ newNetwork sizes = do
   layers <- mapM (uncurry newLayer) sizes'
   return $ Network layers
 
--- | Propagate an input through the network
--- and return every intermediate weighted input along the way including
--- the original input.
-sendforwards
-  :: (Numeric a, Num (Vector a))
-  => ActivationFunction a  -- ^ The activation function
-  -> Vector a              -- ^ The network input
-  -> Network a             -- ^ The network
-  -> [Vector a]            -- ^ The weighted inputs of all the layers
-sendforwards activation input (Network layers) =
-    let f  = feed activation
-        g  = send
-        az = scanl (\(x, x') l -> (f x l, g x l)) (input, input) layers
-     in map snd az
-
--- | Propagate an input through the network
--- and return the weighted input of the last layer.
-sendforward
-  :: (Numeric a, Num (Vector a))
-  => ActivationFunction a  -- ^ The activation function
-  -> Vector a              -- ^ The network input
-  -> Network a             -- ^ The network
-  -> Vector a              -- ^ The wighted input of the last layer
-sendforward activation input = last . sendforwards activation input
-
--- | Propagate an input through the network
--- and return every intermediate activation along the way including
--- the original input.
+-- | Propagate an input through the network and return every intermediate
+-- activation and weighted input along the way.
 feedforwards
   :: (Numeric a, Num (Vector a))
-  => ActivationFunction a  -- ^ The activation function
-  -> Vector a              -- ^ The network input
-  -> Network a             -- ^ The network
-  -> [Vector a]            -- ^ The activations of all the layers
+  => ActivationFunction a   -- ^ The activation function
+  -> Vector a               -- ^ The network input
+  -> Network a              -- ^ The network
+  -> [(Vector a, Vector a)] -- ^ The activations of all the layers
 feedforwards activation input (Network layers) =
-    scanl (feed activation) input layers
+    tail $ scanl (feed activation . fst) (input, input) layers
 
 -- | Propagate an input through the network
--- and return the activation of the last layer.
+-- and return the activation and weighted input of the last layer.
 feedforward
   :: (Numeric a, Num (Vector a))
   => ActivationFunction a  -- ^ The activation function
   -> Vector a              -- ^ The network input
   -> Network a             -- ^ The network
-  -> Vector a              -- ^ The activations of the last layer
+  -> (Vector a, Vector a)  -- ^ The activations of the last layer
 feedforward activation input = last . feedforwards activation input

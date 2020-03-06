@@ -2,7 +2,6 @@
 module Neural.Layer
   ( Layer(..)
   , newLayer
-  , send
   , feed
   )
 where
@@ -35,22 +34,13 @@ newLayer m n = do
   _weights <- replicateM n $ replicateM m $ state normal
   return $ Layer (fromLists _weights) (fromList _biases)
 
--- | Compute the weighted input to a layer,
--- that is, the `feed` function with no activation.
-send
-    :: (Numeric a, Num (Vector a))
-    => Vector a              -- ^ The layer input
-    -> Layer a               -- ^ The layer
-    -> Vector a              -- ^ The layer output
-send x (Layer w b) = w #> x + b
-
--- | Propagate an input through a layer.
+-- | Calculate the activation and weighted input of a layer
 feed
     :: (Numeric a, Num (Vector a))
     => ActivationFunction a  -- ^ The activation function
     -> Vector a              -- ^ The layer input
     -> Layer a               -- ^ The layer
-    -> Vector a              -- ^ The layer output
-feed activation x layer = f y
-    where y = send x layer
+    -> (Vector a, Vector a)  -- ^ The layer output
+feed activation x (Layer w b) = (f y, y)
+    where y = w #> x + b
           f = cmap activation
