@@ -15,7 +15,7 @@ type ActivationFunction' a = a -> a
 -- Useful when computing probabilities,
 -- as the result is always between 0 and 1.
 sigmoid :: Floating a => ActivationFunction a
-sigmoid x = 1 / (x + exp (negate x))
+sigmoid x = 1 / (1 + exp (negate x))
 
 -- | The derivative of the `sigmoid` function.
 sigmoid' :: Floating a => ActivationFunction' a
