@@ -17,7 +17,7 @@ type ActivationFunction' a = a -> a
 sigmoid :: Floating a => ActivationFunction a
 sigmoid x = 1 / (x + exp (negate x))
 
--- | The derivative of the sigmoid function.
+-- | The derivative of the `sigmoid` function.
 sigmoid' :: Floating a => ActivationFunction' a
 sigmoid' x = y - y ^ 2 where y = sigmoid x
 
@@ -26,8 +26,8 @@ sigmoid' x = y - y ^ 2 where y = sigmoid x
 reLU :: (Num a, Ord a) => ActivationFunction a
 reLU = max 0
 
--- | The derivative of the Rectified Linear Unit function.
--- `reLU' 0` has been arbitrarily chosen to equal `1` instead of `0`.
+-- | The derivative of the Rectified Linear Unit function `reLU`.
+-- The derivative at 0 has been arbitrarily chosen to equal 1 instead of 0.
 reLU' :: (Num a, Ord a) => ActivationFunction' a
 reLU' x | x < 0     = 0
         | otherwise = 1
