@@ -1,6 +1,8 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Neural.Layer
   ( Layer(..)
   , newLayer
+  , forward
   )
 where
 
@@ -9,6 +11,8 @@ import           Data.Random.Normal
 import           Control.Monad
 import           Control.Monad.State
 import           Numeric.LinearAlgebra
+
+import Neural.Activation (ActivationFunction(..))
 
 -- | A layer in a neural network.
 data Layer a = Layer
@@ -29,3 +33,13 @@ newLayer m n = do
   _biases  <- replicateM n $ state normal
   _weights <- replicateM n $ replicateM m $ state normal
   return $ Layer (fromLists _weights) (fromList _biases)
+
+-- | Propagate an input through a layer
+forward
+    :: (Numeric a, Num (Vector a))
+    => ActivationFunction a  -- ^ The activation function
+    -> Vector a              -- ^ The layer input
+    -> Layer a               -- ^ The layer
+    -> Vector a              -- ^ The layer output
+forward activation x (Layer w b) = f (w #> x + b)
+    where f = cmap activation

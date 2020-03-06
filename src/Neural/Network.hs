@@ -2,6 +2,7 @@
 module Neural.Network
   ( Network(..)
   , newNetwork
+  , feedforwards
   , feedforward
   )
 where
@@ -13,9 +14,7 @@ import qualified Data.Semigroup                as Semigroup
 import           Numeric.LinearAlgebra
 
 import           Neural.Activation              ( ActivationFunction(..))
-import           Neural.Layer                   ( Layer(..)
-                                                , newLayer
-                                                )
+import           Neural.Layer
 
 -- | Simple feed-forward network.
 newtype Network a = Network [Layer a]
@@ -33,17 +32,23 @@ newNetwork sizes = do
   layers <- mapM (uncurry newLayer) sizes'
   return $ Network layers
 
--- | Feed forward an input through the network.
+-- | Feed forward an input through the network
+-- and return every intermediate along the way.
+feedforwards
+  :: (Numeric a, Num (Vector a))
+  => ActivationFunction a  -- ^ The activation function
+  -> Vector a              -- ^ The network input
+  -> Network a             -- ^ The network
+  -> [Vector a]            -- ^ All of the values through the network
+feedforwards activation input (Network layers) =
+    scanl (forward activation) input layers
+
+-- | Feed forward an input through the network
+-- and return the output of the last layer.
 feedforward
   :: (Numeric a, Num (Vector a))
   => ActivationFunction a  -- ^ The activation function
   -> Vector a              -- ^ The network input
   -> Network a             -- ^ The network
   -> Vector a              -- ^ The network output
-feedforward activation input (Network layers) =
-  let _weights = map weights layers
-      _biases  = map biases layers
-      wb       = zip _weights _biases
-      f        = cmap activation
-      forward x (w, b) = f (w #> x + b)
-  in  foldl forward input wb
+feedforward activation input = last . feedforwards activation input
