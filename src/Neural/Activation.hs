@@ -1,11 +1,11 @@
 module Neural.Activation
-  ( ActivationFunction(..)
-  , ActivationFunction'(..)
-  , sigmoid
-  , sigmoid'
-  , reLU
-  , reLU'
-  )
+    ( ActivationFunction(..)
+    , ActivationFunction'(..)
+    , sigmoid
+    , sigmoid'
+    , reLU
+    , reLU'
+    )
 where
 
 type ActivationFunction a = a -> a
