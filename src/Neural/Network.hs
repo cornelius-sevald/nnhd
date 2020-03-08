@@ -1,13 +1,13 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Neural.Network
-    ( Network(..)
-    , weights
-    , biases
-    , newNetwork
-    , randomNetwork
-    , feedforwards
-    , feedforward
-    )
+  ( Network(..)
+  , weights
+  , biases
+  , newNetwork
+  , randomNetwork
+  , feedforwards
+  , feedforward
+  )
 where
 
 import           System.Random
@@ -41,30 +41,30 @@ newNetwork ws bs = Network $ zipWith newLayer ws bs
 -- Each bias and weight is given a random value normally
 -- distributed with mean 0 and standard deviation 1.
 randomNetwork
-    :: (RandomGen g, Random a, Element a, Floating a)
-    => [Int]    -- ^ The sizes of the layers
-    -> State g (Network a)
+  :: (RandomGen g, Random a, Element a, Floating a)
+  => [Int]    -- ^ The sizes of the layers
+  -> State g (Network a)
 randomNetwork sizes = do
-    let sizes' = zip (init sizes) (tail sizes)
-    layers <- mapM (uncurry randomLayer) sizes'
-    return $ Network layers
+  let sizes' = zip (init sizes) (tail sizes)
+  layers <- mapM (uncurry randomLayer) sizes'
+  return $ Network layers
 
 -- | Propagate an input through the network and return every intermediate
 -- activation and weighted input along the way.
 feedforwards
-    :: (Numeric a, Num (Vector a))
-    => ActivationFunction a   -- ^ The activation function
-    -> Vector a               -- ^ The network input
-    -> Network a              -- ^ The network
-    -> [(Vector a, Vector a)] -- ^ The activations of all the layers
+  :: (Numeric a, Num (Vector a))
+  => ActivationFunction a   -- ^ The activation function
+  -> Vector a               -- ^ The network input
+  -> Network a              -- ^ The network
+  -> [(Vector a, Vector a)] -- ^ The activations of all the layers
 feedforwards σ x (Network layers) = tail $ scanl (feed σ . fst) (x, x) layers
 
 -- | Propagate an input through the network
 -- and return the activation and weighted input of the last layer.
 feedforward
-    :: (Numeric a, Num (Vector a))
-    => ActivationFunction a  -- ^ The activation function
-    -> Vector a              -- ^ The network input
-    -> Network a             -- ^ The network
-    -> (Vector a, Vector a)  -- ^ The activations of the last layer
+  :: (Numeric a, Num (Vector a))
+  => ActivationFunction a  -- ^ The activation function
+  -> Vector a              -- ^ The network input
+  -> Network a             -- ^ The network
+  -> (Vector a, Vector a)  -- ^ The activations of the last layer
 feedforward σ x = last . feedforwards σ x
