@@ -15,6 +15,9 @@ import           Control.Monad.Random
 import           System.Random
 import           System.Random.Shuffle          ( shuffleM )
 import           Numeric.LinearAlgebra
+import           Text.Printf
+
+import           Debug.Trace
 
 import           Neural.Activation
 import qualified Neural.Network                as N
@@ -24,9 +27,9 @@ import           Neural.Network          hiding ( weights
 import           Neural.Layer                   ( Layer(..) )
 
 -- | A training example with an input and desired output in vector form.
-data TrainingExample a = TrainingExample (Vector a) (Vector a)
+data TrainingExample a = TrainingExample (Vector a) (Vector a) deriving Show
 -- | A training example with an input and desired output as an index.
-data TestingExample a  = TestingExample (Vector a) Int
+data TestingExample a  = TestingExample (Vector a) Int deriving Show
 
 -- | The Hadamar product, elementwise multiplication.
 (⊙) :: Num (Vector a) => Vector a -> Vector a -> Vector a
@@ -50,13 +53,11 @@ train σ σ' η trainingData testData epochs mbs net = do
   let tellProgress epoch net' = case testData of
         Nothing        -> tell ["Epoch " ++ show epoch ++ " complete"]
         Just testData' -> tell
-          [ "Epoch "
-            ++ show epoch
-            ++ ": "
-            ++ show (evaluate σ testData' net')
-            ++ " / "
-            ++ show (length testData')
-          ]
+          [printf "Epoch %d: %d / %d (%.2f%%)" epoch evaluation n p]
+         where
+          evaluation = evaluate σ testData' net'
+          n          = length testData'
+          p          = fromIntegral evaluation / fromIntegral n * 100 :: Double
   let trainEpoch net' epoch = do
         batches <- state $ runRand $ forM
           [1 .. epochs]
@@ -90,12 +91,12 @@ trainMiniBatch
   -> [TrainingExample a]     -- ^ A mini batch of training examples
   -> Network a               -- ^ The untrained network
   -> Network a               -- ^ The trained network
-trainMiniBatch σ σ' η batches net =
+trainMiniBatch σ σ' η batch net =
   let bp example = backpropagation σ σ' example net
-      η'     = η / fromIntegral (length batches)
+      η'     = η / fromIntegral (length batch)
       ws0    = map (konst 0 . size) (N.weights net)
       bs0    = map (konst 0 . size) (N.biases net)
-      deltas = map (unzip . bp) batches
+      deltas = map (unzip . bp) batch
       f (w, b) (dw, db) = (zipWith (+) w dw, zipWith (+) b db)
       (nabla_w, nabla_b) = foldl f (ws0, bs0) deltas
       ws = zipWith (\w nw -> w - scale η' nw) (N.weights net) nabla_w
@@ -122,7 +123,7 @@ backpropagation σ σ' (TrainingExample x y) net@(Network layers) =
                                                 -- the error for the previous
                                                 -- layer
       δ0      = bp1 σ' nabla_aC (last zs)       -- The error of the last layer
-      δs      = reverse $ scanr calc_δ δ0 (zip layers zs)
+      δs      = scanr calc_δ δ0 (zip (tail layers) zs)
       nabla_b = δs                              -- The 3rd equation
       nabla_w = zipWith outer δs as_            -- The 4th equation
   in  zip nabla_w nabla_b
@@ -145,5 +146,5 @@ bp2
   -> Vector a                 -- ^ The error of the next layer
   -> Vector a                 -- ^ The weighted input of the current layer
   -> Vector a                 -- ^ The error of the current layer
-bp2 _σ' w δ z = (w #> δ) ⊙ σ' z where σ' = cmap _σ'
+bp2 _σ' w δ z = (tr' w #> δ) ⊙ σ' z where σ' = cmap _σ'
 

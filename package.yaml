@@ -20,7 +20,10 @@ description:         Please see the README on GitHub at <https://github.com/corn
 
 dependencies:
 - base               >= 4.7 && < 5
-- filepath           >= 1.4.2.1
+- bytestring         >= 0.10.10.0
+- transformers       >= 0.5.6.2
+- errors             >= 2.3.0
+- vector             >= 0.12.1.2
 - random             >= 1.1
 - MonadRandom        >= 0.5.1.2
 - random-shuffle     >= 0.0.4
