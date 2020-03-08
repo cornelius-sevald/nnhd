@@ -20,10 +20,13 @@ description:         Please see the README on GitHub at <https://github.com/corn
 
 dependencies:
 - base               >= 4.7 && < 5
+- filepath           >= 1.4.2.1
 - random             >= 1.1
 - MonadRandom        >= 0.5.1.2
 - random-shuffle     >= 0.0.4
 - mtl                >= 2.2.2
+- zlib               >= 0.6.2.1
+- mnist-idx          >= 0.1.2.8
 - hmatrix            >= 0.20.0.0
 - normaldistribution >= 1.1.0.3
 
