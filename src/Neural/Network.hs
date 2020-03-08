@@ -1,7 +1,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Neural.Network
     ( Network(..)
+    , weights
+    , biases
     , newNetwork
+    , randomNetwork
     , feedforwards
     , feedforward
     )
@@ -14,22 +17,36 @@ import qualified Data.Semigroup                as Semigroup
 import           Numeric.LinearAlgebra
 
 import           Neural.Activation              ( ActivationFunction(..) )
-import           Neural.Layer
+import           Neural.Layer            hiding ( weights
+                                                , biases
+                                                )
+import qualified Neural.Layer                  as Layer
 
 -- | Simple feed-forward network.
 newtype Network a = Network [Layer a]
     deriving (Show)
 
+
+weights :: Network a -> [Matrix a]
+weights (Network layers) = map Layer.weights layers
+
+biases :: Network a -> [Vector a]
+biases (Network layers) = map Layer.biases layers
+
+-- | Construct a new network from a list of weigth matricws and bias vectors.
+newNetwork :: [Matrix a] -> [Vector a] -> Network a
+newNetwork ws bs = Network $ zipWith newLayer ws bs
+
 -- | Construct a new random network given the sizes of the layers
 -- Each bias and weight is given a random value normally
 -- distributed with mean 0 and standard deviation 1.
-newNetwork
+randomNetwork
     :: (RandomGen g, Random a, Element a, Floating a)
     => [Int]    -- ^ The sizes of the layers
     -> State g (Network a)
-newNetwork sizes = do
+randomNetwork sizes = do
     let sizes' = zip (init sizes) (tail sizes)
-    layers <- mapM (uncurry newLayer) sizes'
+    layers <- mapM (uncurry randomLayer) sizes'
     return $ Network layers
 
 -- | Propagate an input through the network and return every intermediate
@@ -40,8 +57,7 @@ feedforwards
     -> Vector a               -- ^ The network input
     -> Network a              -- ^ The network
     -> [(Vector a, Vector a)] -- ^ The activations of all the layers
-feedforwards activation input (Network layers) =
-    tail $ scanl (feed activation . fst) (input, input) layers
+feedforwards σ x (Network layers) = tail $ scanl (feed σ . fst) (x, x) layers
 
 -- | Propagate an input through the network
 -- and return the activation and weighted input of the last layer.
@@ -51,4 +67,4 @@ feedforward
     -> Vector a              -- ^ The network input
     -> Network a             -- ^ The network
     -> (Vector a, Vector a)  -- ^ The activations of the last layer
-feedforward activation input = last . feedforwards activation input
+feedforward σ x = last . feedforwards σ x
