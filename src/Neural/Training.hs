@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Neural.Training
   ( TrainingExample(..)
+  , TestingExample(..)
   , train
   , backpropagation
   )
@@ -22,8 +23,9 @@ import           Neural.Network          hiding ( weights
                                                 )
 import           Neural.Layer                   ( Layer(..) )
 
--- | A training example with an input and desired output.
+-- | A training example with an input and desired output in vector form.
 data TrainingExample a = TrainingExample (Vector a) (Vector a)
+-- | A training example with an input and desired output as an index.
 data TestingExample a  = TestingExample (Vector a) Int
 
 -- | The Hadamar product, elementwise multiplication.
@@ -31,7 +33,7 @@ data TestingExample a  = TestingExample (Vector a) Int
 u ⊙ v = u * v
 
 
--- Train a neural network over some amount of epochs given some training
+-- | Train a neural network over some amount of epochs given some training
 -- data and the size of the mini batches.
 train
   :: (RandomGen g, Fractional a, Numeric a, Num (Vector a))
@@ -79,7 +81,7 @@ evaluate σ testData net =
       results = map eval testData
   in  foldl (\acc r -> acc + fromBool r) 0 results
 
--- Train a neural network for a mini batch of training data.
+-- | Train a neural network for a mini batch of training data.
 trainMiniBatch
   :: (Fractional a, Numeric a, Num (Vector a))
   => ActivationFunction a    -- ^ The activation function
@@ -100,7 +102,7 @@ trainMiniBatch σ σ' η batches net =
       bs = zipWith (\b nb -> b - scale η' nb) (N.biases net) nabla_b
   in  newNetwork ws bs
 
--- Find the gradient of the cost function with respects to a networks
+-- | Find the gradient of the cost function with respects to a networks
 -- weights and biases for one training example.
 backpropagation
   :: (Numeric a, Num (Vector a))

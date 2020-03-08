@@ -26,10 +26,11 @@ import qualified Neural.Layer                  as Layer
 newtype Network a = Network [Layer a]
     deriving (Show)
 
-
+-- | Get the weights of the network.
 weights :: Network a -> [Matrix a]
 weights (Network layers) = map Layer.weights layers
 
+-- | Get the biases of the network.
 biases :: Network a -> [Vector a]
 biases (Network layers) = map Layer.biases layers
 
