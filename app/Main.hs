@@ -15,10 +15,10 @@ import           Neural.Training
 import           Data.MNIST                     ( loadData )
 
 seed :: Int
-seed = 114117116106
+seed = 114117116110
 
 layerSizes :: [Int]
-layerSizes = [784, 40, 30, 10]
+layerSizes = [784, 30, 10]
 
 main :: IO ()
 main = do
@@ -34,7 +34,7 @@ trainNetwork
   -> IO (Network a)
 trainNetwork trainEx testEx = do
   let gen             = mkStdGen seed
-  let trainFunc = train sigmoid sigmoid' 3.0 trainEx Nothing 30 100
+  let trainFunc = train sigmoid sigmoid' 3.0 trainEx (Just testEx) 30 10
   let (randNet, gen') = runState (randomNetwork layerSizes) gen
   let (net, logs) = runWriter $ evalStateT (trainFunc randNet) gen'
   mapM_ putStrLn logs

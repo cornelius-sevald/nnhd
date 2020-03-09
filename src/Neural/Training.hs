@@ -7,6 +7,7 @@ module Neural.Training
   )
 where
 
+import           Data.List.Split                ( chunksOf )
 import           Foreign.Marshal.Utils          ( fromBool )
 import           Control.Monad
 import           Control.Monad.Writer
@@ -16,8 +17,6 @@ import           System.Random
 import           System.Random.Shuffle          ( shuffleM )
 import           Numeric.LinearAlgebra
 import           Text.Printf
-
-import           Debug.Trace
 
 import           Neural.Activation
 import qualified Neural.Network                as N
@@ -59,11 +58,10 @@ train σ σ' η trainingData testData epochs mbs net = do
           n          = length testData'
           p          = fromIntegral evaluation / fromIntegral n * 100 :: Double
   let trainEpoch net' epoch = do
-        batches <- state $ runRand $ forM
-          [1 .. epochs]
-          (\_ -> take mbs <$> shuffleM trainingData)
-        let tmb        = trainMiniBatch σ σ' η
-        let trainedNet = foldl (flip tmb) net' batches
+        shuffledTrainingData <- state $ runRand $ shuffleM trainingData
+        let miniBatches = chunksOf mbs shuffledTrainingData
+        let tmb         = trainMiniBatch σ σ' η
+        let trainedNet  = foldr tmb net' miniBatches
         lift $ tellProgress epoch trainedNet
         return trainedNet
 
@@ -91,12 +89,12 @@ trainMiniBatch
   -> [TrainingExample a]     -- ^ A mini batch of training examples
   -> Network a               -- ^ The untrained network
   -> Network a               -- ^ The trained network
-trainMiniBatch σ σ' η batch net =
+trainMiniBatch σ σ' η miniBatch net =
   let bp example = backpropagation σ σ' example net
-      η'     = η / fromIntegral (length batch)
+      η'     = η / fromIntegral (length miniBatch)
       ws0    = map (konst 0 . size) (N.weights net)
       bs0    = map (konst 0 . size) (N.biases net)
-      deltas = map (unzip . bp) batch
+      deltas = map (unzip . bp) miniBatch
       f (w, b) (dw, db) = (zipWith (+) w dw, zipWith (+) b db)
       (nabla_w, nabla_b) = foldl f (ws0, bs0) deltas
       ws = zipWith (\w nw -> w - scale η' nw) (N.weights net) nabla_w
