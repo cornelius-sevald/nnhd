@@ -1,3 +1,3 @@
 #!/bin/sh
 
-stack run -- -n 1
+stack run -- -n 5

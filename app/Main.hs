@@ -27,15 +27,15 @@ deepShape = [784, 30, 30, 30, 10]
 -- HYPER PARAMETERS
 -- learing rate
 μ :: Double
-μ = 1
+μ = 0.5
 
 -- Mini batch size
 mbs :: Int
-mbs = 10
+mbs = 100
 
 -- Amount of training epochs
 epochs :: Int
-epochs = 1
+epochs = 50
 
 main :: IO ()
 main = defaultMain
