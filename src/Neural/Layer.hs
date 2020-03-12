@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 {-# LANGUAGE FlexibleContexts #-}
 module Neural.Layer
   ( Layer(..)
@@ -12,6 +13,8 @@ import           Data.Random.Normal
 import           Control.Monad
 import           Control.Monad.State
 import           Numeric.LinearAlgebra
+import           GHC.Generics                   ( Generic )
+import           Control.DeepSeq
 
 import           Neural.Activation              ( ActivationFunction(..) )
 
@@ -19,7 +22,7 @@ import           Neural.Activation              ( ActivationFunction(..) )
 data Layer a = Layer
     { weights :: Matrix a    -- Weight matrix
     , biases  :: Vector a    -- Bias vector
-    } deriving (Show)
+    } deriving (Show, Generic, NFData)
 
 -- | Construct a new layer from a weigth matrix and a bias vector.
 newLayer :: Matrix a -> Vector a -> Layer a

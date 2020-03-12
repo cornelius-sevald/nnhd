@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 {-# LANGUAGE FlexibleContexts #-}
 module Neural.Network
   ( Network(..)
@@ -15,6 +16,8 @@ import           Foreign.Storable               ( Storable )
 import           Control.Monad.State
 import qualified Data.Semigroup                as Semigroup
 import           Numeric.LinearAlgebra
+import           GHC.Generics                   ( Generic )
+import           Control.DeepSeq
 
 import           Neural.Activation              ( ActivationFunction(..) )
 import           Neural.Layer            hiding ( weights
@@ -24,7 +27,7 @@ import qualified Neural.Layer                  as Layer
 
 -- | Simple feed-forward network.
 newtype Network a = Network [Layer a]
-    deriving (Show)
+    deriving (Show, Generic, NFData)
 
 -- | Get the weights of the network.
 weights :: Network a -> [Matrix a]

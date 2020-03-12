@@ -1,11 +1,15 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Main where
 
+import           System.Exit
 import           System.Random
+import           System.TimeIt
 import           Control.Monad.State
 import           Numeric.LinearAlgebra
 import           Control.Monad.Trans.Maybe      ( runMaybeT )
 import           Control.Monad.Writer           ( runWriter )
+import           Criterion.Main
+import           Criterion.Types
 
 import           Neural.Network
 import           Neural.Activation              ( sigmoid
@@ -14,28 +18,57 @@ import           Neural.Activation              ( sigmoid
 import           Neural.Training
 import           Data.MNIST                     ( loadData )
 
-seed :: Int
-seed = 114117116110
+shallowShape :: [Int]
+shallowShape = [784, 30, 10]
 
-layerSizes :: [Int]
-layerSizes = [784, 30, 10]
+deepShape :: [Int]
+deepShape = [784, 30, 30, 30, 10]
+
+-- HYPER PARAMETERS
+-- learing rate
+μ :: Double
+μ = 1
+
+-- Mini batch size
+mbs :: Int
+mbs = 10
+
+-- Amount of training epochs
+epochs :: Int
+epochs = 1
 
 main :: IO ()
-main = do
-  mnistData <- runMaybeT loadData
-  case mnistData of
-    Nothing                -> putStrLn "Failed to load MNIST data."
-    Just (trainEx, testEx) -> void $ trainNetwork trainEx testEx
+main = defaultMain
+  [ env setupEnv $ \ ~(trainEx, testEx) ->
+      let trainShallow = timeIt (randomIO >>= trainNetwork trainEx testEx shallowShape)
+          trainDeep    = timeIt (randomIO >>= trainNetwork trainEx testEx deepShape)
+      in  bgroup
+            "main"
+            [ bench "shallow" $ nfIO trainShallow
+            , bench "deep"    $ nfIO trainDeep
+            ]
+  ]
 
 trainNetwork
-  :: (Numeric a, Floating a, Element a, Random a, Num (Vector a))
-  => [TrainingExample a]
-  -> [TestingExample a]
-  -> IO (Network a)
-trainNetwork trainEx testEx = do
+  :: [TrainingExample Double]
+  -> [TestingExample Double]
+  -> [Int]
+  -> Seed
+  -> IO (Network Double)
+trainNetwork trainEx testEx shape seed = do
   let gen             = mkStdGen seed
-  let trainFunc = train sigmoid sigmoid' 3.0 trainEx (Just testEx) 30 10
-  let (randNet, gen') = runState (randomNetwork layerSizes) gen
+  let trainFunc = train sigmoid sigmoid' μ trainEx (Just testEx) epochs mbs
+  let (randNet, gen') = runState (randomNetwork shape) gen
   let (net, logs) = runWriter $ evalStateT (trainFunc randNet) gen'
+  putStrLn "Training network..."
+
   mapM_ putStrLn logs
   return net
+
+setupEnv
+    :: IO ([TrainingExample Double], [TestingExample Double])
+setupEnv = do
+  mnistData <- runMaybeT loadData
+  case mnistData of
+    Nothing -> putStrLn "Failed to load MNIST data." >> exitFailure
+    Just (trainEx, testEx) -> return (trainEx, testEx)

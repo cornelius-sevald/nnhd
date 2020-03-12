@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 {-# LANGUAGE FlexibleContexts #-}
 module Neural.Training
   ( TrainingExample(..)
@@ -17,6 +18,8 @@ import           System.Random
 import           System.Random.Shuffle          ( shuffleM )
 import           Numeric.LinearAlgebra
 import           Text.Printf
+import           GHC.Generics                   ( Generic )
+import           Control.DeepSeq
 
 import           Neural.Activation
 import qualified Neural.Network                as N
@@ -26,9 +29,11 @@ import           Neural.Network          hiding ( weights
 import           Neural.Layer                   ( Layer(..) )
 
 -- | A training example with an input and desired output in vector form.
-data TrainingExample a = TrainingExample (Vector a) (Vector a) deriving Show
+data TrainingExample a = TrainingExample (Vector a) (Vector a)
+    deriving (Show, Generic, NFData)
 -- | A training example with an input and desired output as an index.
-data TestingExample a  = TestingExample (Vector a) Int deriving Show
+data TestingExample a  = TestingExample (Vector a) Int
+    deriving (Show, Generic, NFData)
 
 -- | The Hadamar product, elementwise multiplication.
 (⊙) :: Num (Vector a) => Vector a -> Vector a -> Vector a
